@@ -29,14 +29,14 @@ func InsertDoc(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(wgts)
 	case "nappies":
 		nps := models.NewNappies(params["type"])
-		//nps.Insert()
-		fmt.Println(nps)
+		nps.Insert()
+		//fmt.Println(nps)
 		_ = json.NewEncoder(w).Encode(nps)
 	case "feeds":
 		q, _ := strconv.ParseFloat(params["quantity"], 64)
 		fds := models.NewFeeds(params["type"], q)
-		//fds.Insert()
-		fmt.Println(fds)
+		fds.Insert()
+		//fmt.Println(fds)
 		_ = json.NewEncoder(w).Encode(fds)
 	default:
 		log.Fatal("fell through")
@@ -68,4 +68,5 @@ func GetTotFeed(w http.ResponseWriter, r *http.Request) {
 	t := fds.CountFeeds()
 	//_ = json.NewEncoder(w).Encode(t)
 	fmt.Fprint(w, t)
+	//fmt.Println(t)
 }

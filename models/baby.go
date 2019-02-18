@@ -4,7 +4,6 @@ import (
 	configuration "EllaAlexaSkill/dao"
 	"EllaAlexaSkill/queries"
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -38,9 +37,9 @@ type Nappies struct {
 }
 
 type totalfeed struct {
-	c int     `json:"count"`
-	t string  `json:"type"`
-	q float64 `json:"totquantity"`
+	c int     `json:"count" bson:"TotalFeed"`
+	t string  `json:"type" bson:"type"`
+	q float64 `json:"totquantity" bson:"TotalQuant"`
 }
 
 // ================ Weights Methods
@@ -155,7 +154,7 @@ func (f Feeds) GetLatest() Feeds {
 	return element
 }
 
-func (f Feeds) CountFeeds() bson.D {
+func (f Feeds) CountFeeds() []bson.D {
 	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
 
 	pipeline := queries.TodayFoodv2(time.Now())
@@ -166,14 +165,18 @@ func (f Feeds) CountFeeds() bson.D {
 
 	defer curs.Close(ctx)
 
-	//element := totalfeed{}
-	element := bson.D{}
+	//elements := []totalfeed{}
+	elements := []bson.D{}
+
 	for curs.Next(ctx) {
+		//element := totalfeed{}
+		element := bson.D{}
 		err := curs.Decode(&element)
 		catch(err)
+		elements = append(elements, element)
 	}
-	fmt.Println(element)
-	return element
+
+	return elements
 }
 
 func NewNappies(t string) *Nappies {
