@@ -1,61 +1,118 @@
-
+// all mongodb operations are written here
 package controllers
 
-type BabyController {
-	Insert
-	GetAll 
-	GetLatest
-	CountFeeds
-	CountNappies
-}
+import (
+	"EllaAlexaSkill/dao"
+	"EllaAlexaSkill/utilities"
+	"context"
+	"github.com/mongodb/mongo-go-driver/bson"
+	"github.com/mongodb/mongo-go-driver/mongo"
+	"time"
+)
 
 
 // import db from configuration
 var db = configuration.Db
 
-func Insert(w interface{}, c string) {
+//Insert document i into coll collection
+func InsertOne(i interface{}, coll string) {
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
-	_, err := db.Collection(c).InsertOne(ctx, w)
-	catch(err)
+	_, err := db.Collection(coll).InsertOne(ctx, i)
+	utilities.Catch(err)
 
 }
 
-func GetAll(c string) []bson.M {
+//GetAll get all the documents from collection coll
+func  GetAll(coll string) []bson.M {
 	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
 
-	curs, err := db.Collection(c).Find(ctx, bson.D{})
-	catch(err)
+	curs, err := db.Collection(coll).Find(ctx, bson.D{})
+	utilities.Catch(err)
 
 	defer curs.Close(ctx)
 
 	elements := []bson.M{}
 
 	for curs.Next(ctx) {
-		element := Weights{}
+		element := bson.M{}
 		err := curs.Decode(&element)
-		catch(err)
+		utilities.Catch(err)
 		elements = append(elements, element)
 	}
 
 	return elements
 }
 
-func GetLatest(c string) []bson.D {
-	pipeline := queries.QLatest()
+// Get the latest entry in the the collection coll
+func GetLatest(coll string) []bson.D {
+	pipeline := []bson.M{
+		{"$limit": 1},
+		{"$sort": bson.M{"createdat": -1}},
+	}
 
-	return mongohelpers.RunAggregate(pipeline, c)
+	return runAggregate(pipeline, db.Collection(coll))
 }
 
-func CountFeeds() []bson.D {
-	pipeline := queries.QFoodAt(time.Now())
+// Count how many feeds for any give 2 points in time
+func CountFeeds(from time.Time, to time.Time) []bson.D {
+	pipeline := []bson.M{
+		// match
+		{"$match": bson.M{"createdat": bson.M{"$gte": from,
+			"$lte": to}}},
+		// group
+		{"$group": bson.M{
+			"_id":        bson.M{"type": "$type"}, // "$fieldname" - return the field
+			"TotalFeed":  bson.M{"$sum": 1},
+			"TotalQuant": bson.M{"$sum": "$quantity"}}},
+		// project
+		{"$project": bson.M{"type": "$_id.type", // project selecte subset of fields
+			"TotalFeed":  "$TotalFeed", // rename fiedls
+			"TotalQuant": "$TotalQuant",
+			"_id":        0}}, // 0 means not show _id
+	}
 
-	return mongohelpers.RunAggregate(pipeline)
+	return runAggregate(pipeline, db.Collection("feeds"))
 }
 
-func CountNappies() []bson.D {
+// Count how many nappies for any give 2 points in time
+func CountNappies(from time.Time, to time.Time) []bson.D {
 
-	pipeline := queries.QNappiesAt(time.Now())
+	pipeline := []bson.M{
+		// match
+		{"$match": bson.M{"createdat": bson.M{"$gte": from,
+			"$lte": to}}},
+		// group
+		{"$group": bson.M{
+			"_id":        bson.M{"type": "$type"}, // "$fieldname" - return the field
+			"TotalNappies":  bson.M{"$sum": 1}}},
+		// project
+		{"$project": bson.M{"type": "$_id.type", // project selecte subset of fields
+			"TotalNappies":  "$TotalNappies", // rename fiedls
+			"_id":        0}}, // 0 means not show _id
+	}
 
-	return mongohelpers.RunAggregate(pipeline)
+	return runAggregate(pipeline, db.Collection("nappies"))
+}
+
+
+func runAggregate(pipeline []bson.M, coll *mongo.Collection) []bson.D{
+
+	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
+
+	curs, err := coll.Aggregate(ctx, pipeline)
+	utilities.Catch(err)
+
+	defer curs.Close(ctx)
+
+	elements := []bson.D{}
+
+	for curs.Next(ctx) {
+		element := bson.D{}
+		err := curs.Decode(&element)
+		utilities.Catch(err)
+		elements = append(elements, element)
+	}
+
+	return elements
 }
