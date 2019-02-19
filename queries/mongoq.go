@@ -36,6 +36,14 @@ func QFoodAt(d time.Time) []bson.M {
 
 }
 
+func QLatest() []bson.M {
+	q := []bson.M{
+		{"$limit": 1},
+		{"$sort": bson.M{"createdat": -1}},
+	}
+	return q
+}
+
 /*
 func QWeightAt(d time.Time) []bson.M {
 
