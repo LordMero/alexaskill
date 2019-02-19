@@ -2,6 +2,7 @@ package models
 
 import (
 	configuration "EllaAlexaSkill/dao"
+	"EllaAlexaSkill/mongohelpers"
 	"EllaAlexaSkill/queries"
 	"context"
 	"log"
@@ -78,25 +79,9 @@ func (w Weights) GetAll() []Weights {
 	return elements
 }
 
-/*
-func (w Weights) GetLatest() Weights {
-	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
-
-	catch(err)
-
-	defer curs.Close(ctx)
-
-	elements := []Weights{}
-
-	for curs.Next(ctx) {
-		element := Weights{}
-		err := curs.Decode(&element)
-		catch(err)
-		elements = append(elements, element)
-	}
-
-}
-*/
+//func (w Weights) GetLatest() Weights {
+//
+//}
 
 // ================ Feeds Methods
 func NewFeeds(t string, q float64) *Feeds {
@@ -155,28 +140,10 @@ func (f Feeds) GetLatest() Feeds {
 }
 
 func (f Feeds) CountFeeds() []bson.D {
-	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
 
-	pipeline := queries.TodayFoodv2(time.Now())
-	//fmt.Println(pipeline)
+	pipeline := queries.QFoodAt(time.Now())
 
-	curs, err := db.Collection("feeds").Aggregate(ctx, pipeline)
-	catch(err)
-
-	defer curs.Close(ctx)
-
-	//elements := []totalfeed{}
-	elements := []bson.D{}
-
-	for curs.Next(ctx) {
-		//element := totalfeed{}
-		element := bson.D{}
-		err := curs.Decode(&element)
-		catch(err)
-		elements = append(elements, element)
-	}
-
-	return elements
+	return mongohelpers.RunAggregate(pipeline)
 }
 
 func NewNappies(t string) *Nappies {
