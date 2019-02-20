@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"EllaAlexaSkill/models"
+	"alexaskill/models"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"log"

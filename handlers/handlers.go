@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"EllaAlexaSkill/models"
-	"EllaAlexaSkill/utilities"
+	"alexaskill/models"
+	"alexaskill/utilities"
 	"encoding/json"
 	"fmt"
 	"github.com/mongodb/mongo-go-driver/bson"

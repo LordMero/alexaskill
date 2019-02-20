@@ -1,7 +1,7 @@
 package main
 
 import (
-	"EllaAlexaSkill/handlers"
+	"alexaskill/handlers"
 	"fmt"
 	"log"
 	"net/http"

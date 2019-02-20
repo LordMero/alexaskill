@@ -2,8 +2,8 @@
 package controllers
 
 import (
-	"EllaAlexaSkill/dao"
-	"EllaAlexaSkill/utilities"
+	"alexaskill/dao"
+	"alexaskill/utilities"
 	"context"
 	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/mongo"

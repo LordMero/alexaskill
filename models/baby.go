@@ -2,7 +2,7 @@
 package models
 
 import (
-	"EllaAlexaSkill/controllers"
+	"alexaskill/controllers"
 	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"time"

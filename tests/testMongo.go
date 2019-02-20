@@ -1,7 +1,7 @@
 package tests
 
 import (
-	"EllaAlexaSkill/models"
+	"alexaskill/models"
 	"context"
 	"encoding/json"
 	"github.com/mongodb/mongo-go-driver/bson"
