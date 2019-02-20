@@ -1,8 +1,8 @@
 package configuration
 
 import (
-	"context"
 	"github.com/mongodb/mongo-go-driver/mongo"
+	"github.com/mongodb/mongo-go-driver/mongo/options"
 	"log"
 )
 
@@ -15,7 +15,8 @@ const (
 
 func init()  {
 	// we use the init function to init mongo db connection
-	c, e := mongo.Connect(context.Background(), CONSTRING)
+	//c, e := mongo.Connect(context.Background(), CONSTRING)
+	c, e  := mongo.NewClient(options.Client().ApplyURI(CONSTRING))
 	if e != nil {log.Fatal(e)}
 
 	Db = c.Database(DBNAME)
