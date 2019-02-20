@@ -28,6 +28,8 @@ func main() {
 	r.HandleFunc("/api/nappies/latest", handlers.GetLatestDoc).Methods("GET")
 	r.HandleFunc("/api/nappies/from:{from}&to:{to}", handlers.GetTotNappies).Methods("GET")
 
+	r.HandleFunc("/api/baby/", handlers.GetBaby).Methods("GET")
+
 	fmt.Println("Starting server. Listening on port:", port)
 	err := http.ListenAndServe("localhost:"+port, r)
 	log.Fatal(err)

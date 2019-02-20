@@ -11,9 +11,9 @@ import (
 type BabyCollections mongo.Collection
 
 type Baby struct {
-	Weights
-	Feeds
-	Nappies
+	Weights `json:"weights"`
+	Feeds `json:"Feeds"`
+	Nappies `json:"Nappies"`
 }
 
 // define types
@@ -43,17 +43,39 @@ type totalfeed struct {
 }
 
 // ================= implement constructors ===========================
-func NewWeights() *Weights {
-	return &Weights{}
+func NewWeights(w float64) *Weights {
+	return &Weights{
+		Weight: w,
+		CreatedAt: time.Now(),
+		Collection: "weights",
+	}
 
 }
 
-func NewFeeds() *Feeds {
-	return &Feeds{}
+func NewFeeds(t string, q float64) *Feeds {
+	return &Feeds{
+		Type: t,
+		Quantity: q,
+		CreatedAt: time.Now(),
+		Collection: "feeds",
+	}
 }
 
-func NewNappies() *Nappies {
-	return &Nappies{}
+func NewNappies(t string) *Nappies {
+	return &Nappies{
+		Type: t,
+		CreatedAt: time.Now(),
+		Collection: "nappies",
+	}
+}
+
+func NewBaby() *Baby {
+	return &Baby{
+		Weights{Weight:0, Collection: "weights"},
+		Feeds{Type:"", Quantity:0, Collection: "feeds"},
+		Nappies{Type:"", Collection: "nappies"},
+	}
+
 }
 
 //Insert document i into coll collection
@@ -61,11 +83,11 @@ func (w Weights) Insert() {
 	controllers.InsertOne(w, w.Collection)
 }
 
-func (w Weights) GetAll() []bson.M {
+func (w Weights) GetAll() bson.D {
 	return controllers.GetAll(w.Collection)
 }
 
-func (w Weights) GetLatest() []bson.D{
+func (w Weights) GetLatest() bson.D{
 	return controllers.GetLatest(w.Collection)
 }
 
@@ -76,15 +98,15 @@ func (f Feeds) Insert() {
 	controllers.InsertOne(f, f.Collection)
 }
 
-func (f Feeds) GetAll() []bson.M {
+func (f Feeds) GetAll() bson.D {
 	return controllers.GetAll(f.Collection)
 }
 
-func (f Feeds) GetLatest() []bson.D {
+func (f Feeds) GetLatest() bson.D {
 	return controllers.GetLatest(f.Collection)
 }
 
-func (f Feeds) CountFeeds(from time.Time, to time.Time) []bson.D {
+func (f Feeds) CountFeeds(from time.Time, to time.Time) bson.D {
 	return controllers.CountFeeds(from, to)
 }
 
@@ -95,15 +117,15 @@ func (n Nappies) Insert(){
 	controllers.InsertOne(n, n.Collection)
 }
 
-func (n Nappies) GetAll() []bson.M {
+func (n Nappies) GetAll() bson.D {
 	return controllers.GetAll(n.Collection)
 }
 
-func (n Nappies) GetLatest() []bson.D {
+func (n Nappies) GetLatest() bson.D {
 	return controllers.GetLatest(n.Collection)
 }
 
-func (n Nappies) CountFeeds(from time.Time, to time.Time) []bson.D {
+func (n Nappies) CountNappies(from time.Time, to time.Time) bson.D {
 	return controllers.CountNappies(from, to)
 }
 

@@ -24,7 +24,7 @@ func InsertOne(i interface{}, coll string) {
 }
 
 //GetAll get all the documents from collection coll
-func  GetAll(coll string) []bson.M {
+func  GetAll(coll string) bson.D {
 	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
 
 	curs, err := db.Collection(coll).Find(ctx, bson.D{})
@@ -32,30 +32,29 @@ func  GetAll(coll string) []bson.M {
 
 	defer curs.Close(ctx)
 
-	elements := []bson.M{}
+	elements := bson.D{}
 
 	for curs.Next(ctx) {
-		element := bson.M{}
-		err := curs.Decode(&element)
+		err := curs.Decode(&elements)
 		utilities.Catch(err)
-		elements = append(elements, element)
 	}
 
 	return elements
 }
 
 // Get the latest entry in the the collection coll
-func GetLatest(coll string) []bson.D {
+func GetLatest(coll string) bson.D {
 	pipeline := []bson.M{
 		{"$limit": 1},
 		{"$sort": bson.M{"createdat": -1}},
+		{"$project": bson.M{"_id": 0}},
 	}
 
 	return runAggregate(pipeline, db.Collection(coll))
 }
 
 // Count how many feeds for any give 2 points in time
-func CountFeeds(from time.Time, to time.Time) []bson.D {
+func CountFeeds(from time.Time, to time.Time) bson.D {
 	pipeline := []bson.M{
 		// match
 		{"$match": bson.M{"createdat": bson.M{"$gte": from,
@@ -76,7 +75,7 @@ func CountFeeds(from time.Time, to time.Time) []bson.D {
 }
 
 // Count how many nappies for any give 2 points in time
-func CountNappies(from time.Time, to time.Time) []bson.D {
+func CountNappies(from time.Time, to time.Time) bson.D {
 
 	pipeline := []bson.M{
 		// match
@@ -96,7 +95,7 @@ func CountNappies(from time.Time, to time.Time) []bson.D {
 }
 
 
-func runAggregate(pipeline []bson.M, coll *mongo.Collection) []bson.D{
+func runAggregate(pipeline []bson.M, coll *mongo.Collection) bson.D{
 
 	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
 
@@ -105,13 +104,12 @@ func runAggregate(pipeline []bson.M, coll *mongo.Collection) []bson.D{
 
 	defer curs.Close(ctx)
 
-	elements := []bson.D{}
+	elements := bson.D{}
 
 	for curs.Next(ctx) {
-		element := bson.D{}
-		err := curs.Decode(&element)
+		//element := bson.D{}
+		err := curs.Decode(&elements)
 		utilities.Catch(err)
-		elements = append(elements, element)
 	}
 
 	return elements
