@@ -4,6 +4,7 @@ import (
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"github.com/mongodb/mongo-go-driver/mongo/options"
 	"log"
+	"fmt"
 )
 
 var Db *mongo.Database
@@ -18,7 +19,6 @@ func init()  {
 	//c, e := mongo.Connect(context.Background(), CONSTRING)
 	c, e  := mongo.NewClient(options.Client().ApplyURI(CONSTRING))
 	if e != nil {log.Fatal(e)}
-
 	Db = c.Database(DBNAME)
-
+	fmt.Println("connected to mongodb")
 }

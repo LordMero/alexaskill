@@ -8,6 +8,7 @@ import (
 	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"time"
+	"fmt"
 )
 
 
@@ -16,6 +17,7 @@ var db = configuration.Db
 
 //Insert document i into coll collection
 func InsertOne(i interface{}, coll string) {
+	fmt.Println("controllers: insert one invoked")
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
 	_, err := db.Collection(coll).InsertOne(ctx, i)
@@ -25,6 +27,7 @@ func InsertOne(i interface{}, coll string) {
 
 //GetAll get all the documents from collection coll
 func  GetAll(coll string) bson.D {
+	fmt.Println("controllers: get all invoked")
 	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
 
 	curs, err := db.Collection(coll).Find(ctx, bson.D{})
@@ -44,6 +47,7 @@ func  GetAll(coll string) bson.D {
 
 // Get the latest entry in the the collection coll
 func GetLatest(coll string) bson.D {
+	fmt.Println("controllers: get latest invoked")
 	pipeline := []bson.M{
 		{"$limit": 1},
 		{"$sort": bson.M{"createdat": -1}},
@@ -55,6 +59,7 @@ func GetLatest(coll string) bson.D {
 
 // Count how many feeds for any give 2 points in time
 func CountFeeds(from time.Time, to time.Time) bson.D {
+	fmt.Println("controllers: CountFeeds invoked")
 	pipeline := []bson.M{
 		// match
 		{"$match": bson.M{"createdat": bson.M{"$gte": from,

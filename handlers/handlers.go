@@ -15,7 +15,7 @@ import (
 )
 
 func InsertDoc(w http.ResponseWriter, r *http.Request) {
-
+	fmt.Println("handlers: insert doc invoked")
 	coll := strings.Split(r.RequestURI, "/")
 
 	fmt.Println(coll[2])
@@ -54,6 +54,7 @@ func InsertDoc(w http.ResponseWriter, r *http.Request) {
 
 func GetDoc(w http.ResponseWriter, r *http.Request) {
 	coll := strings.Split(r.RequestURI, "/")
+	fmt.Println("handlers: get  doc invoked")
 	switch coll[2] {
 	case "weights":
 		wgt := models.NewWeights(0)
@@ -72,7 +73,7 @@ func GetDoc(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetLatestDoc(w http.ResponseWriter, r *http.Request){
-
+	fmt.Println("handlers: get latest  doc invoked")
 	coll := strings.Split(r.RequestURI, "/")
 	switch coll[2] {
 	case "weights":
@@ -96,6 +97,7 @@ func GetLatestDoc(w http.ResponseWriter, r *http.Request){
 
 func GetTotFeed(w http.ResponseWriter, r *http.Request) {
 
+	fmt.Println("handlers: get  tot feeds  invoked")
 	params := mux.Vars(r)
 	layout := "2006-01-02T15:04:05Z07:00"
 
@@ -115,6 +117,7 @@ func GetTotFeed(w http.ResponseWriter, r *http.Request) {
 
 func GetTotNappies(w http.ResponseWriter, r *http.Request) {
 
+	fmt.Println("handlers: get  tot nappies  invoked")
 	params := mux.Vars(r)
 	layout := "2006-01-02T15:04:05Z07:00"
 
