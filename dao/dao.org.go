@@ -5,6 +5,8 @@ import (
 	"github.com/mongodb/mongo-go-driver/mongo/options"
 	"log"
 	"fmt"
+    "context"
+    "time"
 )
 
 var Db *mongo.Database
@@ -17,8 +19,10 @@ const (
 func init()  {
 	// we use the init function to init mongo db connection
 	//c, e := mongo.Connect(context.Background(), CONSTRING)
-	c, e  := mongo.NewClient(options.Client().ApplyURI(CONSTRING))
-	if e != nil {log.Fatal(e)}
-	Db = c.Database(DBNAME)
+    ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+    client, err := mongo.Connect(ctx, options.Client().ApplyURI(CONSTRING))
+    
+    if err != nil {log.Panic(err)}
+	Db = client.Database(DBNAME)
 	fmt.Println("connected to mongodb")
 }
