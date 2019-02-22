@@ -49,6 +49,7 @@ func InsertDoc(w http.ResponseWriter, r *http.Request) {
 	default:
 		log.Fatal("fell through")
 	}
+	w.Header().Set("Content-Type", "application/json")
 
 }
 
@@ -58,7 +59,8 @@ func GetDoc(w http.ResponseWriter, r *http.Request) {
 	switch coll[2] {
 	case "weights":
 		wgt := models.NewWeights(0)
-		_ = json.NewEncoder(w).Encode(wgt.GetAll())
+		t := wgt.GetAll()
+		_ = json.NewEncoder(w).Encode(t)
 		//fmt.Println(wgts, e)
 		//log.Panic(e)
 	case "nappies":
@@ -70,6 +72,8 @@ func GetDoc(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(fds.GetAll())
 		//log.Panic(e)
 	}
+	w.Header().Set("Content-Type", "application/json")
+
 }
 
 func GetLatestDoc(w http.ResponseWriter, r *http.Request){
@@ -92,6 +96,7 @@ func GetLatestDoc(w http.ResponseWriter, r *http.Request){
 		fmt.Println(fds)
 		//log.Panic(e)
 	}
+	w.Header().Set("Content-Type", "application/json")
 
 }
 
@@ -113,6 +118,8 @@ func GetTotFeed(w http.ResponseWriter, r *http.Request) {
 	//_ = json.NewEncoder(w).Encode(t)
 	fmt.Fprint(w, t)
 	//fmt.Println(t)
+	w.Header().Set("Content-Type", "application/json")
+
 }
 
 func GetTotNappies(w http.ResponseWriter, r *http.Request) {
@@ -133,6 +140,9 @@ func GetTotNappies(w http.ResponseWriter, r *http.Request) {
 	//_ = json.NewEncoder(w).Encode(t)
 	fmt.Fprint(w, t)
 	//fmt.Println(t)
+
+	w.Header().Set("Content-Type", "application/json")
+
 }
 
 func GetBaby(w http.ResponseWriter, r *http.Request){
@@ -163,5 +173,8 @@ func GetBaby(w http.ResponseWriter, r *http.Request){
 	utilities.Catch(err)
 
 	json.NewEncoder(w).Encode(*b)
+
+	w.Header().Set("Content-Type", "application/json")
+
 }
 

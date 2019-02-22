@@ -3,6 +3,7 @@ package models
 
 import (
 	"alexaskill/controllers"
+	"alexaskill/utilities"
 	"github.com/mongodb/mongo-go-driver/bson"
 	"github.com/mongodb/mongo-go-driver/mongo"
 	"time"
@@ -83,12 +84,25 @@ func (w Weights) Insert() {
 	controllers.InsertOne(w, w.Collection)
 }
 
-func (w Weights) GetAll() bson.D {
-	return controllers.GetAll(w.Collection)
+func (w Weights) GetAll() Weights {
+
+	sb, err := bson.Marshal(controllers.GetAll(w.Collection))
+	utilities.Catch(err)
+
+	_ = bson.Unmarshal(sb, w)
+
+	return w
+
 }
 
-func (w Weights) GetLatest() bson.D{
-	return controllers.GetLatest(w.Collection)
+func (w Weights) GetLatest() Weights{
+
+	sb, err := bson.Marshal(controllers.GetLatest(w.Collection))
+	utilities.Catch(err)
+
+	_ = bson.Unmarshal(sb, w)
+
+	return w
 }
 
 
@@ -98,16 +112,31 @@ func (f Feeds) Insert() {
 	controllers.InsertOne(f, f.Collection)
 }
 
-func (f Feeds) GetAll() bson.D {
-	return controllers.GetAll(f.Collection)
+func (f Feeds) GetAll() Feeds {
+	sb, err := bson.Marshal(controllers.GetAll(f.Collection))
+	utilities.Catch(err)
+
+	_ = bson.Unmarshal(sb, f)
+
+	return f
 }
 
-func (f Feeds) GetLatest() bson.D {
-	return controllers.GetLatest(f.Collection)
+func (f Feeds) GetLatest() Feeds {
+	sb, err := bson.Marshal(controllers.GetLatest(f.Collection))
+	utilities.Catch(err)
+
+	_ = bson.Unmarshal(sb, f)
+
+	return f
 }
 
-func (f Feeds) CountFeeds(from time.Time, to time.Time) bson.D {
-	return controllers.CountFeeds(from, to)
+func (f Feeds) CountFeeds(from time.Time, to time.Time) Feeds {
+	sb, err := bson.Marshal(controllers.CountFeeds(from, to))
+	utilities.Catch(err)
+
+	_ = bson.Unmarshal(sb, f)
+
+	return f
 }
 
 // NAPPIES
@@ -117,16 +146,33 @@ func (n Nappies) Insert(){
 	controllers.InsertOne(n, n.Collection)
 }
 
-func (n Nappies) GetAll() bson.D {
-	return controllers.GetAll(n.Collection)
+func (n Nappies) GetAll() Nappies {
+	sb, err := bson.Marshal(controllers.GetAll(n.Collection))
+	utilities.Catch(err)
+
+	_ = bson.Unmarshal(sb, n)
+
+	return n
 }
 
-func (n Nappies) GetLatest() bson.D {
-	return controllers.GetLatest(n.Collection)
+func (n Nappies) GetLatest() Nappies {
+
+	sb, err := bson.Marshal(controllers.GetLatest(n.Collection))
+	utilities.Catch(err)
+
+	_ = bson.Unmarshal(sb, n)
+
+	return n
 }
 
-func (n Nappies) CountNappies(from time.Time, to time.Time) bson.D {
-	return controllers.CountNappies(from, to)
+func (n Nappies) CountNappies(from time.Time, to time.Time) Nappies {
+
+	sb, err := bson.Marshal(controllers.CountNappies(from, to))
+	utilities.Catch(err)
+
+	_ = bson.Unmarshal(sb, n)
+
+	return n
 }
 
 
