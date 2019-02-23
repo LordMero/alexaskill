@@ -5,12 +5,12 @@ import (
 	"alexaskill/utilities"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/mongodb/mongo-go-driver/bson"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
-	"github.com/gorilla/mux"
 	"time"
 )
 
@@ -49,6 +49,7 @@ func InsertDoc(w http.ResponseWriter, r *http.Request) {
 	default:
 		log.Fatal("fell through")
 	}
+	w.Header().Add("Content-Type", "application/json")
 
 }
 
@@ -56,19 +57,22 @@ func GetDoc(w http.ResponseWriter, r *http.Request) {
 	coll := strings.Split(r.RequestURI, "/")
 	switch coll[2] {
 	case "weights":
-		wgt := models.NewWeights(0)
-		_ = json.NewEncoder(w).Encode(wgt.GetAll())
-		//fmt.Println(wgts, e)
-		//log.Panic(e)
+
+		wgt := models.GetAllWeights()
+		fmt.Println(wgt)
+		_ = json.NewEncoder(w).Encode(wgt)
+
+
 	case "nappies":
-		nps := models.NewNappies("", )
-		_ = json.NewEncoder(w).Encode(nps.GetAll())
+		nps := models.GetAllNappies()
+		_ = json.NewEncoder(w).Encode(nps)
 		//log.Panic(e)
 	case "feeds":
-		fds := models.NewFeeds("", 0)
-		_ = json.NewEncoder(w).Encode(fds.GetAll())
+		fds := models.GetAllFeeds()
+		_ = json.NewEncoder(w).Encode(fds)
 		//log.Panic(e)
 	}
+	w.Header().Add("Content-Type", "application/json")
 }
 
 func GetLatestDoc(w http.ResponseWriter, r *http.Request){
@@ -76,21 +80,22 @@ func GetLatestDoc(w http.ResponseWriter, r *http.Request){
 	coll := strings.Split(r.RequestURI, "/")
 	switch coll[2] {
 	case "weights":
-		wgt := models.NewWeights(0)
-		_ = json.NewEncoder(w).Encode(wgt.GetLatest())
+		wgt := models.GetLastWeight()
+		_ = json.NewEncoder(w).Encode(wgt)
 		fmt.Println(wgt)
 		//log.Panic(e)
 	case "nappies":
-		nps := models.NewNappies("", )
+		nps := models.GetLastNappy()
 		fmt.Println(nps)
-		_ = json.NewEncoder(w).Encode(nps.GetLatest())
+		_ = json.NewEncoder(w).Encode(nps)
 		//log.Panic(e)
 	case "feeds":
-		fds := models.NewFeeds("", 0)
-		_ = json.NewEncoder(w).Encode(fds.GetLatest())
+		fds := models.GetLastFeed()
+		_ = json.NewEncoder(w).Encode(fds)
 		fmt.Println(fds)
 		//log.Panic(e)
 	}
+	w.Header().Add("Content-Type", "application/json")
 
 }
 
@@ -105,12 +110,11 @@ func GetTotFeed(w http.ResponseWriter, r *http.Request) {
 	to, err := time.Parse(layout, params["to"])
 	utilities.Catch(err)
 
-	fds := models.NewFeeds("", 0)
-
-	t := fds.CountFeeds(from, to)
-	//_ = json.NewEncoder(w).Encode(t)
-	fmt.Fprint(w, t)
+	fds := models.CountFeeds(from, to)
+	_ = json.NewEncoder(w).Encode(fds)
+	fmt.Fprint(w, fds)
 	//fmt.Println(t)
+	w.Header().Add("Content-Type", "application/json")
 }
 
 func GetTotNappies(w http.ResponseWriter, r *http.Request) {
@@ -124,19 +128,20 @@ func GetTotNappies(w http.ResponseWriter, r *http.Request) {
 	to, err := time.Parse(layout, params["to"])
 	utilities.Catch(err)
 
-	nps := models.NewNappies("")
-	t := nps.CountNappies(from, to)
+	nps := models.CountNappies(from, to)
 
-	//_ = json.NewEncoder(w).Encode(t)
-	fmt.Fprint(w, t)
+	_ = json.NewEncoder(w).Encode(nps)
+	fmt.Fprint(w, nps)
 	//fmt.Println(t)
+	w.Header().Add("Content-Type", "application/json")
 }
 
 func GetBaby(w http.ResponseWriter, r *http.Request){
 	b := models.NewBaby()
+	b.Weights =  models.GetLastWeight()
 
 	// handle weights
-	bsonBytes, err := bson.Marshal(b.Weights.GetLatest())
+	bsonBytes, err := bson.Marshal(b.Weights)
 	utilities.Catch(err)
 
 	//t := models.Weights{}
@@ -145,7 +150,8 @@ func GetBaby(w http.ResponseWriter, r *http.Request){
 
 
 	// handle feeds
-	bsonBytes, err = bson.Marshal(b.Feeds.GetLatest())
+	b.Feeds = models.GetLastFeed()
+	bsonBytes, err = bson.Marshal(b.Feeds)
 	utilities.Catch(err)
 
 	err = bson.Unmarshal(bsonBytes, &b.Feeds)
@@ -153,12 +159,15 @@ func GetBaby(w http.ResponseWriter, r *http.Request){
 
 
 	// handle nappies
-	bsonBytes, err = bson.Marshal(b.Nappies.GetLatest())
+	b.Nappies = models.GetLastNappy()
+	bsonBytes, err = bson.Marshal(b.Nappies)
 	utilities.Catch(err)
 
 	err = bson.Unmarshal(bsonBytes, &b.Nappies)
 	utilities.Catch(err)
 
 	json.NewEncoder(w).Encode(*b)
+	w.Header().Add("Content-Type", "application/json")
+
 }
 
