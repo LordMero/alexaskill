@@ -7,7 +7,22 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/davecgh/go-spew/spew"
 	"log"
+	"net/http"
+	"net/url"
+	"path"
 )
+
+
+func HandleHttpRequest(coll string){
+
+	u, _ := url.Parse("grazianomirata.com/api/")
+	u.Path = path.Join(u.Path, coll)
+	s := u.String()
+
+	http.Get(s)
+
+
+}
 
 func HandleRequest(ctx context.Context, i models.AlexaComplexRequest) (models.AlexaResponse, error) {
 	// Use Spew to output the request for debugging purposes:
