@@ -2,10 +2,13 @@ package main
 
 import (
 	"alexaskill/skill/models"
+	"alexaskill/utilities"
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/davecgh/go-spew/spew"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -13,13 +16,26 @@ import (
 )
 
 
-func HandleHttpRequest(coll string){
+func HandleHttpRequest(req string, s *interface{}) map[string]*interface{}{
 
 	u, _ := url.Parse("grazianomirata.com/api/")
-	u.Path = path.Join(u.Path, coll)
-	s := u.String()
+	u.Path = path.Join(u.Path, req)
 
-	http.Get(s)
+	resp, err := http.Get(u.String())
+	utilities.Catch(err)
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	utilities.Catch(err)
+
+	err = json.Unmarshal(body, &s)
+
+	m := make(map[string]*interface{})
+
+	m["req"] =  s
+
+	return m
 
 
 }

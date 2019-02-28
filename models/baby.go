@@ -2,7 +2,7 @@
 package models
 
 import (
-	"github.com/mongodb/mongo-go-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type BabyCollections mongo.Collection

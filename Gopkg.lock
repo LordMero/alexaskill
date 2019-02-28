@@ -47,7 +47,7 @@
 
 [[projects]]
   digest = "1:9be9701967c831fb40a4b8b35c474b0a6e3af1f68ac35ad5fde6c44d71cbf4d1"
-  name = "github.com/mongodb/mongo-go-driver"
+  name = "go.mongodb.org/mongo-driver/mongo"
   packages = [
     "bson",
     "bson/bsoncodec",
@@ -138,9 +138,9 @@
     "github.com/aws/aws-lambda-go/lambda",
     "github.com/davecgh/go-spew/spew",
     "github.com/gorilla/mux",
-    "github.com/mongodb/mongo-go-driver/bson",
-    "github.com/mongodb/mongo-go-driver/mongo",
-    "github.com/mongodb/mongo-go-driver/mongo/options",
+    "go.mongodb.org/mongo-driver/mongo/bson",
+    "go.mongodb.org/mongo-driver/mongo/mongo",
+    "go.mongodb.org/mongo-driver/mongo/mongo/options",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

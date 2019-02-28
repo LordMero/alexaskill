@@ -30,7 +30,7 @@
   version = "1.7.0"
 
 [[constraint]]
-  name = "github.com/mongodb/mongo-go-driver"
+  name = "go.mongodb.org/mongo-driver/mongo"
   version = "0.3.0"
 
 [prune]
