@@ -138,7 +138,7 @@
     "github.com/aws/aws-lambda-go/lambda",
     "github.com/davecgh/go-spew/spew",
     "github.com/gorilla/mux",
-    "go.mongodb.org/mongo-driver/mongo/bson",
+    "go.mongodb.org/mongo-driver/bson",
     "go.mongodb.org/mongo-driver/mongo/mongo",
     "go.mongodb.org/mongo-driver/mongo/mongo/options",
   ]

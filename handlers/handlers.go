@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	"go.mongodb.org/mongo-driver/mongo/bson"
+	"go.mongodb.org/mongo-driver/bson"
 	"log"
 	"net/http"
 	"strconv"
@@ -64,7 +64,6 @@ func GetDoc(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(wgt)
 		_ = json.NewEncoder(w).Encode(wgt)
 
-
 	case "nappies":
 		nps := models.GetAllNappies()
 		_ = json.NewEncoder(w).Encode(nps)
@@ -76,7 +75,7 @@ func GetDoc(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func GetLatestDoc(w http.ResponseWriter, r *http.Request){
+func GetLatestDoc(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	coll := strings.Split(r.RequestURI, "/")
@@ -137,9 +136,9 @@ func GetTotNappies(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
-func GetBaby(w http.ResponseWriter, r *http.Request){
+func GetBaby(w http.ResponseWriter, r *http.Request) {
 	b := models.NewBaby()
-	b.Weights =  models.GetLastWeight()
+	b.Weights = models.GetLastWeight()
 
 	// handle weights
 	bsonBytes, err := bson.Marshal(b.Weights)
@@ -149,7 +148,6 @@ func GetBaby(w http.ResponseWriter, r *http.Request){
 	err = bson.Unmarshal(bsonBytes, &b.Weights)
 	utilities.Catch(err)
 
-
 	// handle feeds
 	b.Feeds = models.GetLastFeed()
 	bsonBytes, err = bson.Marshal(b.Feeds)
@@ -157,7 +155,6 @@ func GetBaby(w http.ResponseWriter, r *http.Request){
 
 	err = bson.Unmarshal(bsonBytes, &b.Feeds)
 	utilities.Catch(err)
-
 
 	// handle nappies
 	b.Nappies = models.GetLastNappy()
@@ -171,4 +168,3 @@ func GetBaby(w http.ResponseWriter, r *http.Request){
 	w.Header().Set("Content-Type", "application/json")
 
 }
-

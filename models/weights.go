@@ -11,17 +11,17 @@ import (
 
 // define types
 type Weights struct {
-	Weight     float64   `json:"weight" bson:"weight"`
-	CreatedAt  time.Time `json:"created_at" bson:"createdat"`
-	Collection string    `json:"-" bson:"-"`
+	Weight     float64 `json:"weight" bson:"weight"`
+	CreatedAt  string  `json:"created_at" bson:"createdat"`
+	Collection string  `json:"-" bson:"-"`
 }
 
 var db = configuration.Db
 
 func NewWeights(w float64) *Weights {
 	return &Weights{
-		Weight: w,
-		CreatedAt: time.Now(),
+		Weight:     w,
+		CreatedAt:  time.Now().Format(configuration.DATELAYOUT),
 		Collection: "weights",
 	}
 
@@ -35,10 +35,10 @@ func (w *Weights) Insert() {
 	utilities.Catch(err)
 }
 
-func  GetAllWeights() []Weights {
+func GetAllWeights() []Weights {
 	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
 
-	curs, err := db.Collection("weights").Find(ctx, bson.D{}, options.Find().SetProjection(bson.D{{"_id",0}}))
+	curs, err := db.Collection("weights").Find(ctx, bson.D{}, options.Find().SetProjection(bson.D{{"_id", 0}}))
 	utilities.Catch(err)
 
 	defer curs.Close(ctx)
@@ -55,7 +55,7 @@ func  GetAllWeights() []Weights {
 	return elements
 }
 
-func  GetLastWeight() Weights {
+func GetLastWeight() Weights {
 
 	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
 
@@ -79,8 +79,4 @@ func  GetLastWeight() Weights {
 
 	return element
 
-
-
 }
-
-

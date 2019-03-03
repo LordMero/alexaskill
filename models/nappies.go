@@ -1,6 +1,7 @@
 package models
 
 import (
+	"alexaskill/configure"
 	"alexaskill/utilities"
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
@@ -9,19 +10,18 @@ import (
 )
 
 type Nappies struct {
-	Type       string    `json:"type" bson:"type"`
-	CreatedAt  time.Time `json:"created_at" bson:"createdat"`
-	Collection string    `json:"-" bson:"-"`
+	Type       string `json:"type" bson:"type"`
+	CreatedAt  string `json:"created_at" bson:"createdat"`
+	Collection string `json:"-" bson:"-"`
 }
 
 func NewNappies(t string) *Nappies {
 	return &Nappies{
-		Type: t,
-		CreatedAt: time.Now(),
+		Type:       t,
+		CreatedAt:  time.Now().Format(configuration.DATELAYOUT),
 		Collection: "nappies",
 	}
 }
-
 
 //Insert document i into coll collection
 func (n *Nappies) Insert() {
@@ -31,10 +31,10 @@ func (n *Nappies) Insert() {
 	utilities.Catch(err)
 }
 
-func  GetAllNappies() []Nappies {
+func GetAllNappies() []Nappies {
 	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
 
-	curs, err := db.Collection("nappies").Find(ctx, bson.D{}, options.Find().SetProjection(bson.D{{"_id",0}}))
+	curs, err := db.Collection("nappies").Find(ctx, bson.D{}, options.Find().SetProjection(bson.D{{"_id", 0}}))
 	utilities.Catch(err)
 
 	defer curs.Close(ctx)
@@ -51,7 +51,7 @@ func  GetAllNappies() []Nappies {
 	return elements
 }
 
-func  GetLastNappy() Nappies {
+func GetLastNappy() Nappies {
 
 	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
 
@@ -75,11 +75,9 @@ func  GetLastNappy() Nappies {
 
 	return element
 
-
-
 }
 
-func  CountNappies(from time.Time, to time.Time) Nappies {
+func CountNappies(from time.Time, to time.Time) Nappies {
 
 	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
 
@@ -89,12 +87,12 @@ func  CountNappies(from time.Time, to time.Time) Nappies {
 			"$lte": to}}},
 		// group
 		{"$group": bson.M{
-			"_id":        bson.M{"type": "$type"}, // "$fieldname" - return the field
-			"TotalNappies":  bson.M{"$sum": 1}}},
+			"_id":          bson.M{"type": "$type"}, // "$fieldname" - return the field
+			"TotalNappies": bson.M{"$sum": 1}}},
 		// project
 		{"$project": bson.M{"type": "$_id.type", // project selecte subset of fields
-			"TotalNappies":  "$TotalNappies", // rename fiedls
-			"_id":        0}}, // 0 means not show _id
+			"TotalNappies": "$TotalNappies", // rename fiedls
+			"_id":          0}},             // 0 means not show _id
 	}
 
 	curs, err := db.Collection("nappies").Aggregate(ctx, pipeline)
@@ -111,6 +109,3 @@ func  CountNappies(from time.Time, to time.Time) Nappies {
 
 	return element
 }
-
-
-

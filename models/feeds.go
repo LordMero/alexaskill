@@ -1,25 +1,26 @@
 package models
 
 import (
+	"alexaskill/configure"
+	"alexaskill/utilities"
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
-	"alexaskill/utilities"
 )
 
 type Feeds struct {
-	Type       string    `json:"type" bson:"type"`
-	Quantity   float64   `json:quantity bson:"quantity"`
-	CreatedAt  time.Time `json:"created_at" bson:"createdat"`
-	Collection string    `json:"-" bson:"-"`
+	Type       string  `json:"type" bson:"type"`
+	Quantity   float64 `json:quantity bson:"quantity"`
+	CreatedAt  string  `json:"created_at" bson:"createdat"`
+	Collection string  `json:"-" bson:"-"`
 }
 
 func NewFeeds(t string, q float64) *Feeds {
 	return &Feeds{
-		Type: t,
-		Quantity: q,
-		CreatedAt: time.Now(),
+		Type:       t,
+		Quantity:   q,
+		CreatedAt:  time.Now().Format(configuration.DATELAYOUT),
 		Collection: "feeds",
 	}
 }
@@ -32,10 +33,10 @@ func (n *Feeds) Insert() {
 	utilities.Catch(err)
 }
 
-func  GetAllFeeds() []Feeds {
+func GetAllFeeds() []Feeds {
 	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
 
-	curs, err := db.Collection("feeds").Find(ctx, bson.D{}, options.Find().SetProjection(bson.D{{"_id",0}}))
+	curs, err := db.Collection("feeds").Find(ctx, bson.D{}, options.Find().SetProjection(bson.D{{"_id", 0}}))
 	utilities.Catch(err)
 
 	defer curs.Close(ctx)
@@ -52,7 +53,7 @@ func  GetAllFeeds() []Feeds {
 	return elements
 }
 
-func  GetLastFeed() Feeds {
+func GetLastFeed() Feeds {
 
 	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
 
@@ -76,8 +77,6 @@ func  GetLastFeed() Feeds {
 
 	return element
 
-
-
 }
 
 func CountFeeds(from time.Time, to time.Time) Feeds {
@@ -91,11 +90,11 @@ func CountFeeds(from time.Time, to time.Time) Feeds {
 		// group
 		{"$group": bson.M{
 			"_id":        bson.M{"type": "$type"}, // "$fieldname" - return the field
-			"TotalFeeds":  bson.M{"$sum": 1}}},
+			"TotalFeeds": bson.M{"$sum": 1}}},
 		// project
 		{"$project": bson.M{"type": "$_id.type", // project selecte subset of fields
-			"TotalFeeds":  "$TotalFeeds", // rename fiedls
-			"_id":        0}}, // 0 means not show _id
+			"TotalFeeds": "$TotalFeeds", // rename fiedls
+			"_id":        0}},           // 0 means not show _id
 	}
 
 	curs, err := db.Collection("feeds").Aggregate(ctx, pipeline)
@@ -112,5 +111,3 @@ func CountFeeds(from time.Time, to time.Time) Feeds {
 
 	return element
 }
-
-
