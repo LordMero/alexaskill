@@ -5,6 +5,7 @@ import (
 	"alexaskill/utilities"
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
 )
@@ -77,22 +78,36 @@ func GetLastNappy() Nappies {
 
 }
 
-func CountNappies(from time.Time, to time.Time) Nappies {
+func CountNappies(when string) interface{} {
 
 	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
 
-	pipeline := []bson.M{
+	//pipeline := []bson.M{
+	//	// match
+	//	{"$match": bson.M{"createdat": bson.M{"$gte": from,
+	//		"$lte": to}}},
+	//	// group
+	//	{"$group": bson.M{
+	//		"_id":          bson.M{"type": "$type"}, // "$fieldname" - return the field
+	//		"TotalNappies": bson.M{"$sum": 1}}},
+	//	// project
+	//	{"$project": bson.M{"type": "$_id.type", // project selecte subset of fields
+	//		"TotalNappies": "$TotalNappies", // rename fiedls
+	//		"_id":          0}},             // 0 means not show _id
+	//}
+
+	pipeline := mongo.Pipeline{
 		// match
-		{"$match": bson.M{"createdat": bson.M{"$gte": from,
-			"$lte": to}}},
+		{{"$match", bson.D{{"createdat", when}}}},
 		// group
-		{"$group": bson.M{
-			"_id":          bson.M{"type": "$type"}, // "$fieldname" - return the field
-			"TotalNappies": bson.M{"$sum": 1}}},
-		// project
-		{"$project": bson.M{"type": "$_id.type", // project selecte subset of fields
-			"TotalNappies": "$TotalNappies", // rename fiedls
-			"_id":          0}},             // 0 means not show _id
+		{{"$group", bson.D{
+			{"_id", bson.D{{"type", "$type"}}}, // "$fieldname" - return the field
+			{"totalnappies", bson.D{{"$sum", 1}}},
+		}}}, // project
+		{{"$project", bson.D{{"type", "$_id.type"}, // project selecte subset of fields
+			{"TotalNappies", "$TotalNappies"},      // rename fiedls
+			{"_id", 0}}, // 0 means not show _id
+		}},
 	}
 
 	curs, err := db.Collection("nappies").Aggregate(ctx, pipeline)
@@ -100,12 +115,20 @@ func CountNappies(from time.Time, to time.Time) Nappies {
 
 	defer curs.Close(ctx)
 
-	element := Nappies{}
 
-	for curs.Next(ctx) {
-		err := curs.Decode(&element)
-		utilities.Catch(err)
+	type out struct{
+		Type string
+		TotalFeeds int32 `bson:"totalfeeds"`
 	}
 
-	return element
+	var e out
+	var ee []out
+
+	for curs.Next(ctx) {
+		err := curs.Decode(&e)
+		utilities.Catch(err)
+		ee = append(ee, e)
+	}
+
+	return ee
 }

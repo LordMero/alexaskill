@@ -4,7 +4,9 @@ import (
 	"alexaskill/configure"
 	"alexaskill/utilities"
 	"context"
+	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
 )
@@ -79,35 +81,63 @@ func GetLastFeed() Feeds {
 
 }
 
-func CountFeeds(from time.Time, to time.Time) Feeds {
+func CountFeeds(when string) interface{}{
 
-	ctx, _ := context.WithTimeout(context.Background(), 50*time.Second)
+	ctx, _ := context.WithTimeout(context.Background(), 60*time.Second)
+	// I'll use this in version 3
+	//pipeline := []bson.M{
+	//	// match
+	//	{"$match": bson.M{"createdat": bson.M{"$gte": from,
+	//		"$lte": to}}},
+	//	// group
+	//	{"$group": bson.M{
+	//		"_id":        bson.M{"type": "$type"}, // "$fieldname" - return the field
+	//		"TotalFeeds": bson.M{"$sum": 1}}},
+	//	// project
+	//	{"$project": bson.M{"type": "$_id.type", // project selecte subset of fields
+	//		"TotalFeeds": "$TotalFeeds", // rename fiedls
+	//		"_id":        0}},           // 0 means not show _id
+	//}
 
-	pipeline := []bson.M{
-		// match
-		{"$match": bson.M{"createdat": bson.M{"$gte": from,
-			"$lte": to}}},
-		// group
-		{"$group": bson.M{
-			"_id":        bson.M{"type": "$type"}, // "$fieldname" - return the field
-			"TotalFeeds": bson.M{"$sum": 1}}},
-		// project
-		{"$project": bson.M{"type": "$_id.type", // project selecte subset of fields
-			"TotalFeeds": "$TotalFeeds", // rename fiedls
-			"_id":        0}},           // 0 means not show _id
+	pipeline := mongo.Pipeline{
+		{{"$match", bson.D{{"createdat", when}}}},
+		{{"$group", bson.D{
+			{"_id",        bson.D{{"type", "$type"}}},
+			{"totalfeeds", bson.D{{"$sum", 1}}},
+		}}},
+		{{"$project", bson.D{
+			{"type", "$_id.type"},
+			{"totalfeeds", "$totalfeeds"},
+			{"_id", 0}},
+		}},
 	}
 
+
+	fmt.Println(pipeline)
 	curs, err := db.Collection("feeds").Aggregate(ctx, pipeline)
 	utilities.Catch(err)
 
 	defer curs.Close(ctx)
 
-	element := Feeds{}
 
-	for curs.Next(ctx) {
-		err := curs.Decode(&element)
-		utilities.Catch(err)
+	type out struct{
+		Type string
+		TotalFeeds int32 `bson:"totalfeeds"`
 	}
 
-	return element
+	var e out
+	var ee []out
+
+
+	for curs.Next(ctx) {
+		err := curs.Decode(&e)
+		utilities.Catch(err)
+		ee = append(ee, e)
+	}
+
+
+	return ee
 }
+
+//TODO:
+// change CountNappies with the same structure as in countfeeds

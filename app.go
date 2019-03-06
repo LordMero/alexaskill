@@ -21,12 +21,12 @@ func main() {
 	r.HandleFunc("/api/feeds/", handlers.GetDoc).Methods("GET")
 	r.HandleFunc("/api/feeds/", handlers.InsertDoc).Methods("POST") // needs type and quantity
 	r.HandleFunc("/api/feeds/latest", handlers.GetLatestDoc).Methods("GET")
-	r.HandleFunc("/api/feeds/from:{from}&to:{to}", handlers.GetTotFeed).Methods("GET")
+	r.HandleFunc("/api/feeds/count", handlers.GetTotFeed).Methods("POST")
 
 	r.HandleFunc("/api/nappies/", handlers.GetDoc).Methods("GET")
 	r.HandleFunc("/api/nappies/", handlers.InsertDoc).Methods("POST") // need type
 	r.HandleFunc("/api/nappies/latest", handlers.GetLatestDoc).Methods("GET")
-	r.HandleFunc("/api/nappies/from:{from}&to:{to}", handlers.GetTotNappies).Methods("GET")
+	r.HandleFunc("/api/nappies/count", handlers.GetTotNappies).Methods("POST")
 
 	r.HandleFunc("/api/baby/", handlers.GetBaby).Methods("GET")
 

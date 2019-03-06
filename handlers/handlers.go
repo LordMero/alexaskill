@@ -5,13 +5,11 @@ import (
 	"alexaskill/utilities"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
+	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 	"strings"
-	"time"
 )
 
 func InsertDoc(w http.ResponseWriter, r *http.Request) {
@@ -20,28 +18,32 @@ func InsertDoc(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(coll[2])
 
-	params := mux.Vars(r)
-	fmt.Println(params)
+	defer r.Body.Close()
+
+	jb, err := ioutil.ReadAll(r.Body)
+	utilities.Catch(err)
 
 	switch coll[2] {
 	case "weights":
-		p, _ := strconv.ParseFloat(params["wgt"], 64)
-
-		wgt := models.NewWeights(p)
+		wgt := models.Weights{}
+		err = json.Unmarshal(jb, &w)
+		utilities.Catch(err)
 
 		wgt.Insert()
 		_ = json.NewEncoder(w).Encode(wgt)
 	case "nappies":
-		nps := models.NewNappies(params["type"])
+		nps := models.Nappies{}
+		err = json.Unmarshal(jb, &nps)
+		utilities.Catch(err)
 
 		nps.Insert()
 
 		//fmt.Println(nps)
 		_ = json.NewEncoder(w).Encode(nps)
 	case "feeds":
-		q, _ := strconv.ParseFloat(params["quantity"], 64)
-
-		fds := models.NewFeeds(params["type"], q)
+		fds := models.Feeds{}
+		err = json.Unmarshal(jb, &fds)
+		utilities.Catch(err)
 
 		fds.Insert()
 		//fmt.Println(fds)
@@ -101,16 +103,21 @@ func GetLatestDoc(w http.ResponseWriter, r *http.Request) {
 
 func GetTotFeed(w http.ResponseWriter, r *http.Request) {
 
-	params := mux.Vars(r)
-	layout := "2006-01-02T15:04:05Z07:00"
+	defer r.Body.Close()
 
-	from, err := time.Parse(layout, params["from"])
+
+	var dat map[string]string
+
+	jb, err := ioutil.ReadAll(r.Body)
+	utilities.Catch(err)
+	fmt.Println(string(jb))
+
+
+	err = json.Unmarshal(jb, &dat)
 	utilities.Catch(err)
 
-	to, err := time.Parse(layout, params["to"])
-	utilities.Catch(err)
+	fds := models.CountFeeds(dat["when"])
 
-	fds := models.CountFeeds(from, to)
 	_ = json.NewEncoder(w).Encode(fds)
 	fmt.Fprint(w, fds)
 	//fmt.Println(t)
@@ -119,16 +126,16 @@ func GetTotFeed(w http.ResponseWriter, r *http.Request) {
 
 func GetTotNappies(w http.ResponseWriter, r *http.Request) {
 
-	params := mux.Vars(r)
-	layout := "2006-01-02T15:04:05Z07:00"
+	defer r.Body.Close()
 
-	from, err := time.Parse(layout, params["from"])
+	var dat map[string]string
+
+	jb, err := ioutil.ReadAll(r.Body)
+
+	err = json.Unmarshal(jb, &dat)
 	utilities.Catch(err)
 
-	to, err := time.Parse(layout, params["to"])
-	utilities.Catch(err)
-
-	nps := models.CountNappies(from, to)
+	nps := models.CountNappies(dat["when"])
 
 	_ = json.NewEncoder(w).Encode(nps)
 	fmt.Fprint(w, nps)
