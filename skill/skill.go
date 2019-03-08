@@ -1,8 +1,8 @@
 package main
 
 import (
-	"alexaskill/skill/models"
-	"alexaskill/utilities"
+	amod "alexaskill/skill/models"
+	mod "alexaskill/models"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,36 +11,39 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
-	"path"
+	"strconv"
 )
 
+var w []mod.Weights
+var f []mod.Feeds
+var n []mod.Nappies
 
-func HandleHttpRequest(req string, s *interface{}) map[string]*interface{}{
+func apihandler(i interface{}){
 
-	u, _ := url.Parse("grazianomirata.com/api/")
-	u.Path = path.Join(u.Path, req)
-
-	resp, err := http.Get(u.String())
-	utilities.Catch(err)
+	resp, _ := http.Get("https://grazianomirata.com/api/feeds/")
 
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
-	utilities.Catch(err)
+	b, _ := ioutil.ReadAll(resp.Body)
 
-	err = json.Unmarshal(body, &s)
-
-	m := make(map[string]*interface{})
-
-	m["req"] =  s
-
-	return m
+	switch i.(type){
+	case []mod.Weights:
+		fmt.Println("Weights")
+		_ = json.Unmarshal(b, &w)
+	case []mod.Feeds:
+		fmt.Println("Feeds")
+		_ = json.Unmarshal(b, &f)
+	case []mod.Nappies:
+		fmt.Println("Nappies")
+		_ = json.Unmarshal(b, &n)
+	}
 
 
 }
 
-func HandleRequest(ctx context.Context, i models.AlexaComplexRequest) (models.AlexaResponse, error) {
+
+
+func HandleRequest(ctx context.Context, i amod.AlexaComplexRequest) (amod.AlexaResponse, error) {
 	// Use Spew to output the request for debugging purposes:
 	fmt.Println("---- Dumping Input Map: ----")
 	spew.Dump(i)
@@ -50,31 +53,47 @@ func HandleRequest(ctx context.Context, i models.AlexaComplexRequest) (models.Al
 	log.Printf("Request type is ", i.Request.Intent.Name)
 
 	// Create a response object
-	resp := models.CreateResponse()
+	resp := amod.CreateResponse()
 
 	// Customize the response for each Alexa Intent
 	switch i.Request.Intent.Name {
 	case "AddNappy":
 		t := i.Request.Intent.Slots.Kind.Value
 		s := fmt.Sprintf("I am adding a %s nappy. I hope it doesn't smell!", t)
+		u := fmt.Sprintf("https://grazianomirata.com/api/nappies/type:%s", t)
+		hr, _ := http.Get(u)
+		fmt.Println(hr)
 		resp.Say(s)
 	case "AddFeed":
 		t := i.Request.Intent.Slots.Type.Value
-		//q, _ := strconv.ParseFloat(i.Request.Intent.Slots.Quantity.Value, 64)
 		q := i.Request.Intent.Slots.Quantity.Value
 		s := fmt.Sprintf("I am adding %s of %s. Thanks", q, t)
+		u := fmt.Sprintf("https://grazianomirata.com/api/feeds/type:%s&quantity:%s", t, q)
+		hr, _ := http.Get(u)
+		fmt.Println(hr)
 		resp.Say(s)
 	case "AddBreastFeed":
 		logType := i.Request.Intent.Slots.LogType.Value
 		dur := i.Request.Intent.Slots.Duration.Value
 		timeUnit := i.Request.Intent.Slots.TimeUnit.Value
-
 		s := fmt.Sprintf("I am %sing a breast feeding session of %s %s.", logType, dur, timeUnit)
+		if timeUnit == "hour" {
+
+			df, _ := strconv.ParseFloat(dur, 64)
+			dur = fmt.Sprintf("%f", df*60)
+
+			}
+		u := fmt.Sprintf("https://grazianomirata.com/api/feeds/type:breast&quantity:%s", dur)
+		hr, _ := http.Get(u)
+		fmt.Println(hr)
 		resp.Say(s)
 	case "AddWeight":
 		n := i.Request.Intent.Slots.Name.Value
 		q := i.Request.Intent.Slots.Wgt.Value
 		s := fmt.Sprintf("%s now weights %s. Got it!", n, q)
+		u := fmt.Sprintf("https://grazianomirata.com/api/weights/wgt:%s", q)
+		hr, _ := http.Get(u)
+		fmt.Println(hr)
 		resp.Say(s)
 	case "GetWeight":
 		n := i.Request.Intent.Slots.Name.Value
