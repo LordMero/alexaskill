@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -20,7 +21,7 @@ var n []mod.Nappies
 
 func apihandler(i interface{}){
 
-	resp, _ := http.Get("https://grazianomirata.com/api/feeds/")
+	resp, _ := http.Get("https://"  + os.Getenv("WEBSITE") +  "/api/feeds/")
 
 	defer resp.Body.Close()
 
