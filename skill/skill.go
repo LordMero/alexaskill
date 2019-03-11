@@ -1,8 +1,10 @@
 package main
 
 import (
-	amod "alexaskill/skill/models"
 	mod "alexaskill/models"
+	amod "alexaskill/skill/models"
+	"alexaskill/utilities"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -19,9 +21,7 @@ var w []mod.Weights
 var f []mod.Feeds
 var n []mod.Nappies
 
-func apihandler(i interface{}){
-
-	resp, _ := http.Get("https://"  + os.Getenv("WEBSITE") +  "/api/feeds/")
+/*func apihandler(i interface{}, resp *http.Response){
 
 	defer resp.Body.Close()
 
@@ -40,9 +40,51 @@ func apihandler(i interface{}){
 	}
 
 
+}*/
+
+func apihandler(resp *http.Response) map[string]interface{} {
+
+	defer resp.Body.Close()
+
+	b, _ := ioutil.ReadAll(resp.Body)
+
+	fmt.Println(string(b))
+
+	var o map[string]interface{}
+	err := json.Unmarshal(b, &o)
+	utilities.Catch(err)
+
+	return o
+
 }
 
+// TODO: - COMPLETE NAPPY COUNT AND FEED COUNT
 
+func WriteRequest(i interface{}, coll string) {
+
+	url := os.Getenv("WEBSITE") + coll + "/"
+
+	sb, err := json.Marshal(i)
+	utilities.Catch(err)
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(sb))
+
+	req.Header.Set("X-Custom-Header", "myvalue")
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	fmt.Println("response Status:", resp.Status)
+	fmt.Println("response Headers:", resp.Header)
+	body, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println("response Body:", string(body))
+
+}
 
 func HandleRequest(ctx context.Context, i amod.AlexaComplexRequest) (amod.AlexaResponse, error) {
 	// Use Spew to output the request for debugging purposes:
@@ -61,20 +103,24 @@ func HandleRequest(ctx context.Context, i amod.AlexaComplexRequest) (amod.AlexaR
 	case "AddNappy":
 		t := i.Request.Intent.Slots.Kind.Value
 		s := fmt.Sprintf("I am adding a %s nappy. I hope it doesn't smell!", t)
-		u := fmt.Sprintf("https://grazianomirata.com/api/nappies/type:%s", t)
-		hr, _ := http.Get(u)
-		fmt.Println(hr)
+
+		nn := mod.NewNappies(t)
+
+		WriteRequest(nn, "nappies")
+
 		resp.Say(s)
 	case "AddFeed":
 		t := i.Request.Intent.Slots.Type.Value
-		q := i.Request.Intent.Slots.Quantity.Value
+		q, _ := strconv.ParseFloat(i.Request.Intent.Slots.Quantity.Value, 64)
 		s := fmt.Sprintf("I am adding %s of %s. Thanks", q, t)
-		u := fmt.Sprintf("https://grazianomirata.com/api/feeds/type:%s&quantity:%s", t, q)
-		hr, _ := http.Get(u)
-		fmt.Println(hr)
+
+		nf := mod.NewFeeds(t, q)
+
+		WriteRequest(nf, "feeds")
+
 		resp.Say(s)
 	case "AddBreastFeed":
-		logType := i.Request.Intent.Slots.LogType.Value
+		/*logType := i.Request.Intent.Slots.LogType.Value
 		dur := i.Request.Intent.Slots.Duration.Value
 		timeUnit := i.Request.Intent.Slots.TimeUnit.Value
 		s := fmt.Sprintf("I am %sing a breast feeding session of %s %s.", logType, dur, timeUnit)
@@ -84,22 +130,29 @@ func HandleRequest(ctx context.Context, i amod.AlexaComplexRequest) (amod.AlexaR
 			dur = fmt.Sprintf("%f", df*60)
 
 			}
-		u := fmt.Sprintf("https://grazianomirata.com/api/feeds/type:breast&quantity:%s", dur)
+		u := fmt.Sprintf(webstr + "feeds/type:breast&quantity:%s", dur)
 		hr, _ := http.Get(u)
 		fmt.Println(hr)
-		resp.Say(s)
+		resp.Say(s)*/
 	case "AddWeight":
 		n := i.Request.Intent.Slots.Name.Value
-		q := i.Request.Intent.Slots.Wgt.Value
+		q, _ := strconv.ParseFloat(i.Request.Intent.Slots.Wgt.Value, 64)
 		s := fmt.Sprintf("%s now weights %s. Got it!", n, q)
-		u := fmt.Sprintf("https://grazianomirata.com/api/weights/wgt:%s", q)
-		hr, _ := http.Get(u)
-		fmt.Println(hr)
+
+		nw := mod.NewWeights(q)
+
+		WriteRequest(nw, "weights")
+
 		resp.Say(s)
 	case "GetWeight":
+		url := os.Getenv("WEBSITE") + "weights/latest"
+		hr, _ := http.Get(url)
+
+		o := apihandler(hr)
+
 		n := i.Request.Intent.Slots.Name.Value
-		q := "4.4"
-		s := fmt.Sprintf("%s weights %s kilos!", n, q)
+		q := o["weight"].(float64)
+		s := fmt.Sprintf("%s weights %f kilos!", n, q)
 		resp.Say(s)
 	case "GetLastFeedTime":
 		n := i.Request.Intent.Slots.Name.Value
@@ -107,10 +160,14 @@ func HandleRequest(ctx context.Context, i amod.AlexaComplexRequest) (amod.AlexaR
 		s := fmt.Sprintf("%s lastly ate at %s", n, q)
 		resp.Say(s)
 	case "GetLastFeedQuantity":
+		url := os.Getenv("WEBSITE") + "feeds/latest"
+		hr, _ := http.Get(url)
+
+		o := apihandler(hr)
 		n := i.Request.Intent.Slots.Name.Value
-		q := "12"
-		t := "formula"
-		s := fmt.Sprintf("Last feed %s had %s of %s", n, q, t)
+		q := o["Quantity"].(float64)
+		t := o["type"].(string)
+		s := fmt.Sprintf("Last feed %s had %f of %s", n, q, t)
 		resp.Say(s)
 	case "GetLastFeed":
 		n := i.Request.Intent.Slots.Name.Value

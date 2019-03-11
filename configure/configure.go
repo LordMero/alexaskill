@@ -19,7 +19,7 @@ const (
 )
 
 func init() {
-	gotenv.Load()
+	gotenv.Load("variable.env")
 
 	// we use the init function to init mongo db connection
 
