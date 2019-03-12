@@ -1,6 +1,7 @@
 package main
 
 import (
+	"alexaskill/configure"
 	mod "alexaskill/models"
 	amod "alexaskill/skill/models"
 	"alexaskill/utilities"
@@ -15,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 )
 
 var w []mod.Weights
@@ -60,9 +62,9 @@ func apihandler(resp *http.Response) map[string]interface{} {
 
 // TODO: - COMPLETE NAPPY COUNT AND FEED COUNT
 
-func WriteRequest(i interface{}, coll string) {
+func WriteRequest(i interface{}, coll string) (body []byte, err error) {
 
-	url := os.Getenv("WEBSITE") + coll + "/"
+	url := os.Getenv("WEBSITE") + coll
 
 	sb, err := json.Marshal(i)
 	utilities.Catch(err)
@@ -81,8 +83,8 @@ func WriteRequest(i interface{}, coll string) {
 
 	fmt.Println("response Status:", resp.Status)
 	fmt.Println("response Headers:", resp.Header)
-	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println("response Body:", string(body))
+	body, err = ioutil.ReadAll(resp.Body)
+	return body, err
 
 }
 
@@ -106,7 +108,7 @@ func HandleRequest(ctx context.Context, i amod.AlexaComplexRequest) (amod.AlexaR
 
 		nn := mod.NewNappies(t)
 
-		WriteRequest(nn, "nappies")
+		WriteRequest(nn, "nappies/")
 
 		resp.Say(s)
 	case "AddFeed":
@@ -116,7 +118,7 @@ func HandleRequest(ctx context.Context, i amod.AlexaComplexRequest) (amod.AlexaR
 
 		nf := mod.NewFeeds(t, q)
 
-		WriteRequest(nf, "feeds")
+		WriteRequest(nf, "feeds/")
 
 		resp.Say(s)
 	case "AddBreastFeed":
@@ -141,7 +143,7 @@ func HandleRequest(ctx context.Context, i amod.AlexaComplexRequest) (amod.AlexaR
 
 		nw := mod.NewWeights(q)
 
-		WriteRequest(nw, "weights")
+		WriteRequest(nw, "weights/")
 
 		resp.Say(s)
 	case "GetWeight":
@@ -177,19 +179,58 @@ func HandleRequest(ctx context.Context, i amod.AlexaComplexRequest) (amod.AlexaR
 		s := fmt.Sprintf("The last time %s ate, it was %s, and %s had %s of %s.", n, tm, n, q, t)
 		resp.Say(s)
 	case "GetNappyCount":
+
+		var temp struct {
+			when string `json:"when"`
+		}
+
+		temp.when = time.Now().Format(configuration.DATELAYOUT)
+
+		sb, _ := WriteRequest(temp, "feeds/count")
+
+		type out struct {
+			Type         string `json:"type"`
+			TotalNappies int    `json:"totalnappies"`
+		}
+
+		var o []out
+
+		_ = json.Unmarshal(sb, &o)
+
 		n := i.Request.Intent.Slots.Name.Value
-		from := "12"
-		to := "1"
-		q := "10"
-		s := fmt.Sprintf("From %s to %s, %s had %s nappies changed.", from, to, n, q)
+		//from := "12"
+		//to := "1"
+		//q := "10"
+		//s := fmt.Sprintf("From %s to %s, %s had %s nappies changed.", from, to, n, q)
+		s := fmt.Sprintf("Today, %s had %s nappies changed.", n, o[0].TotalNappies)
 		resp.Say(s)
 	case "GetFeedCount":
+
+		var temp struct {
+			when string `json:"when"`
+		}
+
+		temp.when = time.Now().Format(configuration.DATELAYOUT)
+
+		sb, _ := WriteRequest(temp, "feeds/count")
+
+		type out struct {
+			Type       string `json:"type"`
+			TotalFeeds int    `json:"totalnappies"`
+		}
+
+		var o []out
+
+		_ = json.Unmarshal(sb, &o)
+
 		n := i.Request.Intent.Slots.Name.Value
-		from := "12"
-		to := "1"
-		q := "12"
-		s := fmt.Sprintf("From %s to %s, %s ate %s times.", from, to, n, q)
+		//from := "12"
+		//to := "1"
+		//q := "10"
+		//s := fmt.Sprintf("From %s to %s, %s had %s nappies changed.", from, to, n, q)
+		s := fmt.Sprintf("Today, %s had %s nappies changed.", n, o[0].TotalFeeds)
 		resp.Say(s)
+
 	case "AMAZON.HelpIntent":
 		resp.Say("This app is easy to use, just say: ask the office how warm it is")
 	default:

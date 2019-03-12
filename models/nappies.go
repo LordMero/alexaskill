@@ -105,8 +105,8 @@ func CountNappies(when string) interface{} {
 			{"totalnappies", bson.D{{"$sum", 1}}},
 		}}}, // project
 		{{"$project", bson.D{{"type", "$_id.type"}, // project selecte subset of fields
-			{"TotalNappies", "$TotalNappies"},      // rename fiedls
-			{"_id", 0}}, // 0 means not show _id
+			{"totalnappies", "$totalnappies"}, // rename fiedls
+			{"_id", 0}},                       // 0 means not show _id
 		}},
 	}
 
@@ -115,10 +115,9 @@ func CountNappies(when string) interface{} {
 
 	defer curs.Close(ctx)
 
-
-	type out struct{
-		Type string
-		TotalFeeds int32 `bson:"totalfeeds"`
+	type out struct {
+		Type         string
+		TotalNappies int32 `bson:"totalnappies"`
 	}
 
 	var e out
