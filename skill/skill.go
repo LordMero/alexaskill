@@ -114,7 +114,7 @@ func HandleRequest(ctx context.Context, i amod.AlexaComplexRequest) (amod.AlexaR
 	case "AddFeed":
 		t := i.Request.Intent.Slots.Type.Value
 		q, _ := strconv.ParseFloat(i.Request.Intent.Slots.Quantity.Value, 64)
-		s := fmt.Sprintf("I am adding %s of %s. Thanks", q, t)
+		s := fmt.Sprintf("I am adding %d of %s. Thanks", q, t)
 
 		nf := mod.NewFeeds(t, q)
 
@@ -202,7 +202,7 @@ func HandleRequest(ctx context.Context, i amod.AlexaComplexRequest) (amod.AlexaR
 		//to := "1"
 		//q := "10"
 		//s := fmt.Sprintf("From %s to %s, %s had %s nappies changed.", from, to, n, q)
-		s := fmt.Sprintf("Today, %s had %s nappies changed.", n, o[0].TotalNappies)
+		s := fmt.Sprintf("Today, %s had %d nappies changed.", n, o[0].TotalNappies)
 		resp.Say(s)
 	case "GetFeedCount":
 
